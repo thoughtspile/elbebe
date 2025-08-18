@@ -1,0 +1,21 @@
+{
+  "name": "funtml",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node funtml.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "esbuild": "^0.25.9",
+    "leaflet": "^1.9.4",
+    "leaflet.markercluster": "^1.5.3",
+    "node-html-parser": "^7.0.1",
+    "polka": "^0.5.2",
+    "sirv": "^3.0.1"
+  }
+}

@@ -1,0 +1,72 @@
+[
+    {
+        "title": "The State Hermitage Museum",
+        "lat": 59.9398,
+        "lng": 30.3146,
+        "description": "One of the largest and oldest museums in the world, founded in 1764.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Winter_Palace_in_Saint_Petersburg_%28retouched%29.jpg/800px-Winter_Palace_in_Saint_Petersburg_%28retouched%29.jpg"
+    },
+    {
+        "title": "Church of the Savior on Spilled Blood",
+        "lat": 59.9400,
+        "lng": 30.3289,
+        "description": "A Russian Orthodox church built on the site where Emperor Alexander II was assassinated.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Cathedral_of_Christ_the_Saviour_on_Blood_St_Petersburg.jpg/800px-Cathedral_of_Christ_the_Saviour_on_Blood_St_Petersburg.jpg"
+    },
+    {
+        "title": "Peter and Paul Fortress",
+        "lat": 59.9500,
+        "lng": 30.3167,
+        "description": "The original citadel of St. Petersburg, founded by Peter the Great in 1703.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Peter_%26_Paul_fortress_in_SPB_03.jpg/800px-Peter_%26_Paul_fortress_in_SPB_03.jpg"
+    },
+    {
+        "title": "St. Isaac's Cathedral",
+        "lat": 59.9341,
+        "lng": 30.3060,
+        "description": "The largest Russian Orthodox cathedral in the city, dedicated to Saint Isaac of Dalmatia.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Saint_Isaac%27s_Cathedral_SPB_%28retouched%29.jpg/800px-Saint_Isaac%27s_Cathedral_SPB_%28retouched%29.jpg"
+    },
+    {
+        "title": "Nevsky Prospect",
+        "lat": 59.9358,
+        "lng": 30.3259,
+        "description": "The main street of St. Petersburg, running through the historical center.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Nevsky_Prospect_01-14.jpg/800px-Nevsky_Prospect_01-14.jpg"
+    },
+    {
+        "title": "Mariinsky Theatre",
+        "lat": 59.9256,
+        "lng": 30.2964,
+        "description": "A historic theatre of opera and ballet, founded in 1860.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Mariinsky_Theatre_%281%29.jpg/800px-Mariinsky_Theatre_%281%29.jpg"
+    },
+    {
+        "title": "Russian Museum",
+        "lat": 59.9386,
+        "lng": 30.3322,
+        "description": "The largest depository of Russian fine art in Saint Petersburg.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3f/Russian_Museum_2016_01.jpg/800px-Russian_Museum_2016_01.jpg"
+    },
+    {
+        "title": "Summer Garden",
+        "lat": 59.9422,
+        "lng": 30.3369,
+        "description": "The oldest park in Saint Petersburg, founded in 1704 by Peter the Great.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Summer_Garden_01.jpg/800px-Summer_Garden_01.jpg"
+    },
+    {
+        "title": "Kazan Cathedral",
+        "lat": 59.9344,
+        "lng": 30.3247,
+        "description": "A cathedral dedicated to Our Lady of Kazan, modeled after St. Peter's Basilica in Rome.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1d/Kazan_Cathedral_SPB_02.jpg/800px-Kazan_Cathedral_SPB_02.jpg"
+    },
+    {
+        "title": "Palace Square",
+        "lat": 59.9386,
+        "lng": 30.3158,
+        "description": "The central city square of St. Petersburg, site of many historical events.",
+        "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2f/Palace_Square_in_SPB_03.jpg/800px-Palace_Square_in_SPB_03.jpg"
+    }
+]
