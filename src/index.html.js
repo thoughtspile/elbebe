@@ -17,14 +17,6 @@ export default html`<!DOCTYPE html>
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
     
     <link rel="stylesheet" href="./map.css">
-    <script type="importmap">
-        {
-            "imports": {
-                "leaflet": "/node_modules/leaflet",
-                "leaflet.markercluster": "/node_modules/leaflet.markercluster"
-            }
-        }
-    </script>
 </head>
 <body>
     <div id="map-container">

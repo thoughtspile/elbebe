@@ -3,7 +3,6 @@ import esbuild from 'esbuild';
 import { readFile, stat, watch } from 'node:fs/promises';
 import path from 'node:path';
 import EventEmitter from 'node:events';
-import parse from 'node-html-parser';
 import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import sirv from 'sirv';
@@ -18,12 +17,26 @@ async function tryGet404() {
     }
 }
 
+async function generateNodeImportmap() {
+    const imports = {};
+    const lockfile = await import('./package-lock.json', { with: { type: 'json' } });
+    for (const [path, pkg] of Object.entries(lockfile.default.packages)) {
+        const name = path.split('node_modules/').at(-1);
+        const { dev } = pkg;
+        if (!name || dev || (name in imports)) continue;
+        imports[name] = `/${path}`;
+    }
+    return { imports };
+}
+
+const importmap = await generateNodeImportmap();
+
 const reloaderRuntime = await readFile('./livereload.js');
+const importmapScript = `<script type="importmap">${JSON.stringify(importmap, null, 2)}</script>`;
 const reloader = `<script>${reloaderRuntime}</script>`;
 
-function injectReloader(html) {
-    html += reloader;
-    return html;
+function injectRuntime(html) {
+    return importmapScript + html + reloader;
 }
 
 const fileExists = path => stat(path).then(s => s.isFile(), () => false);
@@ -58,14 +71,14 @@ async function resolvePageHtml(url) {
     return readFile(htmlPath);
 }
 
-async function startWatcher(emitter) {
+const events = new EventEmitter();
+async function startWatcher() {
     const watcher = watch('./src', { persistent: false, recursive: true });
     for await (const event of watcher) {
-        emitter.emit('change');
+        events.emit('change');
     }
 }
-const staticChanged = new EventEmitter();
-startWatcher(staticChanged);
+startWatcher();
 
 function createSubscription(req, res) {
     res.writeHead(200, {
@@ -75,11 +88,14 @@ function createSubscription(req, res) {
     });
 
     res.write(':ok\n\n');
-    const listener = () => res.write(`event: change\ndata: {}\n\n`);
-    staticChanged.addListener('change', listener);
+    const onChange = () => res.write(`event: change\ndata: {}\n\n`);
+    const onImportMap = (map) => res.write(`event: importmap\ndata: ${JSON.stringify(map)}\n\n`);
+    events.addListener('change', onChange);
+    events.addListener('importmap', onImportMap);
 
     req.on('close', () => {
-        staticChanged.removeListener('change', listener)
+        events.removeListener('change', onChange);
+        events.removeListener('importmap', onImportMap);
         res.end();
     });
 }
@@ -109,14 +125,14 @@ http.createServer(async (req, res) => {
     const dynamicPage = await resolvePageGenerator(req.url);
     if (dynamicPage) {
         res.writeHead(200, { 'Content-Type': 'text/html' })
-        res.end(injectReloader(dynamicPage));
+        res.end(injectRuntime(dynamicPage));
         return;
     }
 
     const rawHtml = await resolvePageHtml(req.url);
     if (rawHtml) {
         res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(injectReloader(rawHtml));
+        res.end(injectRuntime(rawHtml));
         return;
     }
 
@@ -124,7 +140,7 @@ http.createServer(async (req, res) => {
         const fallbackPage = await tryGet404();
         if (fallbackPage) {
             res.writeHead(404, { 'Content-Type': 'text/html' })
-            res.end(injectReloader(dynamicPage))
+            res.end(injectRuntime(dynamicPage))
             return
         }
         res.statusCode = 404;
