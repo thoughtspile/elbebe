@@ -3,9 +3,9 @@ import esbuild from 'esbuild';
 import { readFile, stat, watch } from 'node:fs/promises';
 import path from 'node:path';
 import EventEmitter from 'node:events';
-import { fileURLToPath } from 'node:url';
 import { Worker } from 'node:worker_threads';
 import sirv from 'sirv';
+import { moduleResolve } from 'import-meta-resolve';
 
 const assets = sirv('./src', { dev: true });
 
@@ -100,6 +100,12 @@ function createSubscription(req, res) {
     });
 }
 
+function resolvePackage(specifier) {
+    return moduleResolve(specifier, import.meta.url, {
+        conditions: ['browser', 'import', 'development']
+    }).pathname;
+}
+
 
 // Then start a proxy server on port 3000
 http.createServer(async (req, res) => {
@@ -109,13 +115,11 @@ http.createServer(async (req, res) => {
 
     if (req.url.startsWith('/node_modules/')) {
         const libName = req.url.replace('/node_modules/', '');
-        const target = fileURLToPath(import.meta.resolve(libName));
+        const target = resolvePackage(libName);
         const prebuilt = await esbuild.build({
             entryPoints: [target],
-            bundle: true,
             format: 'esm',
             write: false,
-            packages: 'external'
         });
         res.writeHead(200, { "content-type": 'text/javascript' });
         res.end(prebuilt.outputFiles[0].contents);
