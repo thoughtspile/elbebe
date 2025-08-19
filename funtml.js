@@ -101,9 +101,11 @@ function createSubscription(req, res) {
 }
 
 function resolvePackage(specifier) {
-    return moduleResolve(specifier, import.meta.url, {
-        conditions: ['browser', 'import', 'development']
-    }).pathname;
+    return moduleResolve(
+        specifier, 
+        import.meta.url, 
+        new Set(['browser', 'import', 'development'])
+    ).pathname;
 }
 
 

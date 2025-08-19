@@ -12,11 +12,14 @@
   "description": "",
   "dependencies": {
     "esbuild": "^0.25.9",
+    "htm": "^3.1.1",
     "import-meta-resolve": "^4.1.0",
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "node-html-parser": "^7.0.1",
     "polka": "^0.5.2",
-    "sirv": "^3.0.1"
+    "preact": "^10.27.1",
+    "sirv": "^3.0.1",
+    "uhtml": "^5.0.9"
   }
 }

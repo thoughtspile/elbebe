@@ -22,15 +22,6 @@ export default html`<!DOCTYPE html>
     <div id="map-container">
         <div id="map"></div>
         <div id="sidebar">
-            <h1>Saint Petersburg Landmarks</h1>
-            
-            <div class="search-container">
-                <input type="text" id="search" placeholder="Search landmarks...">
-            </div>
-            
-            <div id="landmarks-list">
-                <!-- Landmarks will be added here dynamically -->
-            </div>
         </div>
     </div>
     

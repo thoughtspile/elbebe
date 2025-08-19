@@ -1,133 +1,136 @@
 import L from 'leaflet';
 import 'leaflet.markercluster';
+import htm from 'htm';
+import { h, render } from 'preact';
 
-const landmarks = await (await fetch('/landmarks.json')).json();
+// Initialize htm with Preact
+const html = htm.bind(h);
 
-// Initialize the map centered on Saint Petersburg
-const map = L.map('map').setView([59.9343, 30.3351], 12);
+// Configuration
+const DEFAULT_VIEW = [59.9343, 30.3351];
+const DEFAULT_ZOOM = 12;
+const CLOSE_ZOOM = 16;
 
-// Add OpenStreetMap base layer
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-}).addTo(map);
+// State
+let landmarks = [];
+let searchTerm = '';
 
-// Add alternative map layers
-const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-});
+// Initialize the map
+const map = L.map('map').setView(DEFAULT_VIEW, DEFAULT_ZOOM);
 
-const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-});
-
-// Create layer control
+// Base layers
 const baseLayers = {
     "Street Map": L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     }),
-    "Satellite": satelliteLayer,
-    "Dark Mode": darkLayer
+    "Satellite": L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+    }),
+    "Dark Mode": L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    })
 };
 
+// Add default base layer
+baseLayers["Street Map"].addTo(map);
+
+// Create layer control
 L.control.layers(baseLayers).addTo(map);
 
 // Create marker cluster group
 const markers = L.markerClusterGroup();
-
-// Add landmarks to map and sidebar
-const landmarksList = document.getElementById('landmarks-list');
-
-landmarks.forEach(landmark => {
-    // Create marker with custom icon
-    const marker = L.marker([landmark.lat, landmark.lng], {
-        title: landmark.title
-    });
-    
-    // Create popup content
-    const popupContent = `
-        <div class="custom-popup">
-            <h3>${landmark.title}</h3>
-            ${landmark.image ? `<img src="${landmark.image}" class="popup-image" alt="${landmark.title}">` : ''}
-            <p>${landmark.description}</p>
-            <small>Coordinates: ${landmark.lat.toFixed(4)}, ${landmark.lng.toFixed(4)}</small>
-        </div>
-    `;
-    
-    marker.bindPopup(popupContent, {
-        maxWidth: 300,
-        className: 'custom-popup'
-    });
-    
-    // Add marker to cluster group
-    markers.addLayer(marker);
-    
-    // Add to sidebar
-    const landmarkItem = document.createElement('div');
-    landmarkItem.className = 'landmark-item';
-    landmarkItem.innerHTML = `<strong>${landmark.title}</strong><p>${landmark.description.substring(0, 60)}...</p>`;
-    
-    landmarkItem.addEventListener('click', () => {
-        map.setView([landmark.lat, landmark.lng], 16);
-        marker.openPopup();
-    });
-    
-    landmarksList.appendChild(landmarkItem);
-});
-
-// Add markers to map
 map.addLayer(markers);
 
-// Search functionality
-const searchInput = document.getElementById('search');
-
-searchInput.addEventListener('input', (e) => {
-    const searchTerm = e.target.value.toLowerCase();
-    const landmarkItems = document.querySelectorAll('.landmark-item');
-    
-    landmarkItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        if (text.includes(searchTerm)) {
-            item.style.display = 'block';
-        } else {
-            item.style.display = 'none';
-        }
-    });
-});
-
-// Add geolocation control
-map.addControl(L.control.zoom({position: 'topright'}));
-
-// Add scale control
+// Add controls
+map.addControl(L.control.zoom({ position: 'topright' }));
 L.control.scale().addTo(map);
 
-// Add geolocation button
-const locateControl = L.control.locate({
-    position: 'topright',
-    strings: {
-        title: "Show my location"
-    }
-}).addTo(map);
-
-// Add button to reset view to St. Petersburg
+// Reset view control
 const resetControl = L.Control.extend({
-    options: {
-        position: 'topright'
-    },
-    
-    onAdd: function(map) {
+    options: { position: 'topright' },
+    onAdd: function() {
         const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
         const button = L.DomUtil.create('a', 'leaflet-control-reset', container);
         button.href = '#';
         button.title = 'Reset view to St. Petersburg';
         button.innerHTML = '↻';
-        
-        L.DomEvent.on(button, 'click', function(e) {
+        L.DomEvent.on(button, 'click', (e) => {
             e.preventDefault();
-            map.setView([59.9343, 30.3351], 12);
+            map.setView(DEFAULT_VIEW, DEFAULT_ZOOM);
         });
-        
         return container;
     }
 });
-
 map.addControl(new resetControl());
+
+// Load landmarks and render UI
+async function loadLandmarks() {
+    landmarks = await (await fetch('/landmarks.json')).json();
+    renderLandmarks();
+}
+
+// Render function using Preact
+function renderLandmarks() {
+    // Clear and update map markers
+    markers.clearLayers();
+
+    const filteredLandmarks = landmarks.filter(landmark =>
+        landmark.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        landmark.description.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    filteredLandmarks.forEach(landmark => {
+        const marker = L.marker([landmark.lat, landmark.lng], { title: landmark.title });
+
+        marker.bindPopup(html`
+            <div class="custom-popup">
+                <h3>${landmark.title}</h3>
+                ${landmark.image ? html`<img src="${landmark.image}" class="popup-image" alt="${landmark.title}">` : ''}
+                <p>${landmark.description}</p>
+                <small>Coordinates: ${landmark.lat.toFixed(4)}, ${landmark.lng.toFixed(4)}</small>
+            </div>
+        `, { maxWidth: 300, className: 'custom-popup' });
+
+        markers.addLayer(marker);
+    });
+
+    // Render UI with Preact — now it won't lose input focus!
+    const sidebar = document.getElementById('sidebar');
+    render(html`
+        <div class="app-container">
+            <div class="sidebar">
+                <div class="search-container">
+                    <input
+                        type="text"
+                        placeholder="Search landmarks..."
+                        onInput=${e => {
+                            searchTerm = e.target.value;
+                            renderLandmarks();
+                        }}
+                        value=${searchTerm}
+                        autocomplete="off"
+                    />
+                </div>
+                <div class="landmarks-list">
+                    ${filteredLandmarks.map(landmark => html`
+                        <div
+                            class="landmark-item"
+                            onClick=${() => {
+                                map.setView([landmark.lat, landmark.lng], CLOSE_ZOOM);
+                                const marker = markers.getLayers().find(m => m.options.title === landmark.title);
+                                if (marker) marker.openPopup();
+                            }}
+                        >
+                            <strong>${landmark.title}</strong>
+                            <p>${landmark.description.substring(0, 60)}...</p>
+                        </div>
+                    `)}
+                </div>
+            </div>
+            <div id="map" class="map-container"></div>
+        </div>
+    `, sidebar);
+}
+
+// Initialize the app
+loadLandmarks();
