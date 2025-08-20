@@ -1,4 +1,4 @@
-import L from 'leaflet';
+import 'leaflet';
 import 'leaflet.markercluster';
 import htm from 'htm';
 import { h, render } from 'preact';

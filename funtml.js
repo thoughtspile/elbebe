@@ -1,5 +1,4 @@
 import http from 'node:http'
-import esbuild from 'esbuild';
 import { readFile, stat, watch } from 'node:fs/promises';
 import path from 'node:path';
 import EventEmitter from 'node:events';
@@ -118,13 +117,9 @@ http.createServer(async (req, res) => {
     if (req.url.startsWith('/node_modules/')) {
         const libName = req.url.replace('/node_modules/', '');
         const target = resolvePackage(libName);
-        const prebuilt = await esbuild.build({
-            entryPoints: [target],
-            format: 'esm',
-            write: false,
-        });
+        const source = await readFile(target);
         res.writeHead(200, { "content-type": 'text/javascript' });
-        res.end(prebuilt.outputFiles[0].contents);
+        res.end(source);
         return;
     }
 
