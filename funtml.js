@@ -5,6 +5,7 @@ import EventEmitter from 'node:events';
 import { Worker } from 'node:worker_threads';
 import sirv from 'sirv';
 import { moduleResolve } from 'import-meta-resolve';
+import { cwd } from 'node:process';
 
 const assets = sirv('./src', { dev: true });
 
@@ -23,7 +24,9 @@ async function generateNodeImportmap() {
         const name = path.split('node_modules/').at(-1);
         const { dev } = pkg;
         if (!name || dev || (name in imports)) continue;
-        imports[name] = `/${path}`;
+        const httpPath = `/${path.replace('node_modules/', '__packages/')}`;
+        imports[name] = httpPath;
+        imports[`${name}/`] = `${httpPath}/`;
     }
     return { imports };
 }
@@ -88,13 +91,10 @@ function createSubscription(req, res) {
 
     res.write(':ok\n\n');
     const onChange = () => res.write(`event: change\ndata: {}\n\n`);
-    const onImportMap = (map) => res.write(`event: importmap\ndata: ${JSON.stringify(map)}\n\n`);
     events.addListener('change', onChange);
-    events.addListener('importmap', onImportMap);
 
     req.on('close', () => {
         events.removeListener('change', onChange);
-        events.removeListener('importmap', onImportMap);
         res.end();
     });
 }
@@ -114,10 +114,16 @@ http.createServer(async (req, res) => {
         return createSubscription(req, res);
     }
 
+    if (req.url.startsWith('/__packages')) {
+        const libName = req.url.replace('/__packages/', '');
+        const target = `/${path.relative(cwd(), resolvePackage(libName))}`;
+        res.writeHead(302, { "Location": target });
+        res.end();
+        return;
+    }
+
     if (req.url.startsWith('/node_modules/')) {
-        const libName = req.url.replace('/node_modules/', '');
-        const target = resolvePackage(libName);
-        const source = await readFile(target);
+        const source = await readFile('.' + req.url);
         res.writeHead(200, { "content-type": 'text/javascript' });
         res.end(source);
         return;
