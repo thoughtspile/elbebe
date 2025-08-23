@@ -1,0 +1,17 @@
+{
+  "name": "@elbebe/dev",
+  "version": "0.0.1",
+  "description": "",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "exports": {},
+  "bin": "./lib/run.js",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "import-meta-resolve": "^4.1.0",
+    "sirv": "^3.0.1"
+  }
+}
