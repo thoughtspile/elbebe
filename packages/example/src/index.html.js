@@ -1,4 +1,4 @@
-import { html } from '../html.js'
+import { html } from 'elbebe';
 
 export default html`<!DOCTYPE html>
 <html lang="en">

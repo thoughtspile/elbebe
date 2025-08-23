@@ -1,26 +1,26 @@
 import http from 'node:http'
-import { readFile, stat, watch } from 'node:fs/promises';
+import { readFile, watch } from 'node:fs/promises';
 import path from 'node:path';
 import EventEmitter from 'node:events';
 import { Worker } from 'node:worker_threads';
 import sirv from 'sirv';
 import { moduleResolve } from 'import-meta-resolve';
 import { cwd } from 'node:process';
+import { fileExists } from './fs.js';
+import { getPaths } from './paths.js';
 
-const assets = sirv('./src', { dev: true });
+const paths = await getPaths();
+
+const assets = sirv(paths.srcDir, { dev: true });
 
 async function tryGet404() {
-    try {
-        return String(await readFile('./src/404.html'));
-    } catch {
-        return null
-    }
+    return readFile(paths.page404).then(b => String(b), () => null);
 }
 
 async function generateNodeImportmap() {
     const imports = {};
-    const lockfile = await import('./package-lock.json', { with: { type: 'json' } });
-    for (const [path, pkg] of Object.entries(lockfile.default.packages)) {
+    const lockfile = JSON.parse(await readFile(paths.packageLock));
+    for (const [path, pkg] of Object.entries(lockfile.packages)) {
         const name = path.split('node_modules/').at(-1);
         const { dev } = pkg;
         if (!name || dev || (name in imports)) continue;
@@ -33,7 +33,7 @@ async function generateNodeImportmap() {
 
 const importmap = await generateNodeImportmap();
 
-const reloaderRuntime = await readFile('./livereload.js');
+const reloaderRuntime = await readFile(paths.livereloadRuntime);
 const importmapScript = `<script type="importmap">${JSON.stringify(importmap, null, 2)}</script>`;
 const reloader = `<script>${reloaderRuntime}</script>`;
 
@@ -41,17 +41,15 @@ function injectRuntime(html) {
     return importmapScript + html + reloader;
 }
 
-const fileExists = path => stat(path).then(s => s.isFile(), () => false);
-
 async function resolvePageGenerator(url) {
     const lookup = url.endsWith('.html')
         ? `${url}.js`
         : path.join(url, 'index.html.js');
-    const rendererPath = `./${path.join('src', lookup)}`;
+    const rendererPath = path.join(paths.srcDir, lookup);
     const hasGenerator = await fileExists(rendererPath);
     if (!hasGenerator) return null;
 
-    const worker = new Worker('./ssrWorker.js', { workerData: { rendererPath } });
+    const worker = new Worker(paths.ssrWorker, { workerData: { rendererPath } });
     const waitForWorker = new Promise((ok, fail) => {
         worker.on('message', ({ page }) => ok(page));
         worker.on('error', fail);
@@ -66,16 +64,14 @@ async function resolvePageHtml(url) {
     const lookup = url.endsWith('.html')
         ? url
         : path.join(url, 'index.html');
-    const htmlPath = `./${path.join('src', lookup)}`;
+    const htmlPath = path.join(paths.srcDir, lookup);
     const hasHtml = await fileExists(htmlPath);
-    if (!hasHtml) return null;
-    
-    return readFile(htmlPath);
+    return hasHtml ? readFile(htmlPath) : null;
 }
 
 const events = new EventEmitter();
 async function startWatcher() {
-    const watcher = watch('./src', { persistent: false, recursive: true });
+    const watcher = watch(paths.srcDir, { persistent: false, recursive: true });
     for await (const event of watcher) {
         events.emit('change');
     }
@@ -107,7 +103,6 @@ function resolvePackage(specifier) {
     ).pathname;
 }
 
-
 // Then start a proxy server on port 3000
 http.createServer(async (req, res) => {
     if (req.url === '/events') {
@@ -116,14 +111,15 @@ http.createServer(async (req, res) => {
 
     if (req.url.startsWith('/__packages')) {
         const libName = req.url.replace('/__packages/', '');
-        const target = `/${path.relative(cwd(), resolvePackage(libName))}`;
-        res.writeHead(302, { "Location": target });
+        const relPath = path.relative(paths.nodeModules, resolvePackage(libName));
+        const targetUrl = `/node_modules/${relPath.split(path.delimiter).join('/')}`;
+        res.writeHead(302, { "Location": targetUrl });
         res.end();
         return;
     }
 
     if (req.url.startsWith('/node_modules/')) {
-        const source = await readFile('.' + req.url);
+        const source = await readFile(path.join(paths.nodeModules + req.url.replace(/^\/node_modules/, '')));
         res.writeHead(200, { "content-type": 'text/javascript' });
         res.end(source);
         return;
@@ -147,7 +143,7 @@ http.createServer(async (req, res) => {
         const fallbackPage = await tryGet404();
         if (fallbackPage) {
             res.writeHead(404, { 'Content-Type': 'text/html' })
-            res.end(injectRuntime(dynamicPage))
+            res.end(injectRuntime(fallbackPage))
             return
         }
         res.statusCode = 404;

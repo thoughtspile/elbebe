@@ -5,7 +5,7 @@
   "description": "",
   "type": "module",
   "scripts": {
-    "dev": "@elbebe/dev"
+    "dev": "elbebe dev"
   },
   "keywords": [],
   "author": "",
@@ -15,5 +15,8 @@
     "leaflet": "^1.9.4",
     "leaflet.markercluster": "^1.5.3",
     "preact": "^10.27.1"
+  },
+  "devDependencies": {
+    "elbebe": "^1.0.0"
   }
 }

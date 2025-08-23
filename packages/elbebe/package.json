@@ -1,0 +1,21 @@
+{
+  "name": "elbebe",
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "bin": "./bin/run.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@elbebe/core": "^0.0.1",
+    "minimist": "^1.2.8"
+  },
+  "exports": "./index.js",
+  "peerDependencies": {
+    "@elbebe/dev": "^0.0.1"
+  },
+  "devDependencies": {
+    "@types/minimist": "^1.2.5"
+  }
+}
