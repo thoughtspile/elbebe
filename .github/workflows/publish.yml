@@ -1,0 +1,17 @@
+name: Release
+on:
+  workflow_dispatch:
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          token: ${{ secrets.NPM_TOKEN }}
+          registry-url: "https://registry.npmjs.org"
+          node-version: 18
+          cache: npm
+      - run: npm publish --workspaces --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
