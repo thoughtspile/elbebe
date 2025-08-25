@@ -5,16 +5,48 @@ import EventEmitter from 'node:events';
 import { Worker } from 'node:worker_threads';
 import sirv from 'sirv';
 import { moduleResolve } from 'import-meta-resolve';
-import { cwd } from 'node:process';
 import { fileExists } from './fs.js';
 import { getPaths } from './paths.js';
+import { polka } from 'polka';
 
 const paths = await getPaths();
 
 const assets = sirv(paths.srcDir, { dev: true });
 
+async function resolvePagePath(urlPath) {
+    const fullHtmlUrl = urlPath.endsWith('.html') ? urlPath : path.join(urlPath, 'index.html');
+    const htmlPath = path.join(paths.srcDir, fullHtmlUrl);
+    
+    const hasHtml = await fileExists(htmlPath);
+    if (hasHtml) return { type: 'html', path: htmlPath };
+
+    const generatorPath = `${htmlPath}.js`;
+    const hasGenerator = await fileExists(generatorPath);
+    if (hasGenerator) return { type: 'js', path: generatorPath }
+
+    return null;
+}
+
+async function renderJsPage(generatorPath) {
+    const worker = new Worker(paths.ssrWorker, { workerData: { generatorPath } });
+    return new Promise((ok, fail) => {
+        worker.on('message', ({ page }) => ok(page));
+        worker.on('error', fail);
+        worker.on('exit', (code) => {
+            if (code !== 0) fail(new Error(`Worker stopped with exit code ${code}`));
+        });
+    });
+}
+
+async function tryRenderPage(urlPath) {
+    const source = await resolvePagePath(urlPath);
+    if (!source) return null;
+    const render = source.type === 'js' ? renderJsPage(source.path) : readFile(source.path);
+    return injectRuntime(await render);
+}
+
 async function tryGet404() {
-    return readFile(paths.page404).then(b => String(b), () => null);
+    return tryRenderPage('/404.html');
 }
 
 async function generateNodeImportmap() {
@@ -39,34 +71,6 @@ const reloader = `<script>${reloaderRuntime}</script>`;
 
 function injectRuntime(html) {
     return importmapScript + html + reloader;
-}
-
-async function resolvePageGenerator(url) {
-    const lookup = url.endsWith('.html')
-        ? `${url}.js`
-        : path.join(url, 'index.html.js');
-    const rendererPath = path.join(paths.srcDir, lookup);
-    const hasGenerator = await fileExists(rendererPath);
-    if (!hasGenerator) return null;
-
-    const worker = new Worker(paths.ssrWorker, { workerData: { rendererPath } });
-    const waitForWorker = new Promise((ok, fail) => {
-        worker.on('message', ({ page }) => ok(page));
-        worker.on('error', fail);
-        worker.on('exit', (code) => {
-            if (code !== 0) fail(new Error(`Worker stopped with exit code ${code}`));
-        });
-    });
-    return await waitForWorker;
-}
-
-async function resolvePageHtml(url) {
-    const lookup = url.endsWith('.html')
-        ? url
-        : path.join(url, 'index.html');
-    const htmlPath = path.join(paths.srcDir, lookup);
-    const hasHtml = await fileExists(htmlPath);
-    return hasHtml ? readFile(htmlPath) : null;
 }
 
 const events = new EventEmitter();
@@ -125,24 +129,23 @@ http.createServer(async (req, res) => {
         return;
     }
 
-    const dynamicPage = await resolvePageGenerator(req.url);
-    if (dynamicPage) {
-        res.writeHead(200, { 'Content-Type': 'text/html' })
-        res.end(injectRuntime(dynamicPage));
-        return;
-    }
-
-    const rawHtml = await resolvePageHtml(req.url);
-    if (rawHtml) {
-        res.writeHead(200, { 'Content-Type': 'text/html' });
-        res.end(injectRuntime(rawHtml));
+    try {
+        const html = await tryRenderPage(req.url);
+        if (html) {
+            res.writeHead(200, { 'Content-Type': 'text/html' })
+            res.end(html);
+            return;
+        }
+    } catch (err) {
+        res.writeHead(500);
+        res.end(`Could not render page: ${err.stack}`);
         return;
     }
 
     assets(req, res, async () => {
         const fallbackPage = await tryGet404();
         if (fallbackPage) {
-            res.writeHead(404, { 'Content-Type': 'text/html' })
+            res.writeHead(404, { 'Content-Type': 'text/html' });
             res.end(injectRuntime(fallbackPage))
             return
         }
