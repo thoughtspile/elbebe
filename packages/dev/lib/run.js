@@ -1,4 +1,3 @@
-import http from 'node:http'
 import { readFile, watch } from 'node:fs/promises';
 import path from 'node:path';
 import EventEmitter from 'node:events';
@@ -7,7 +6,7 @@ import sirv from 'sirv';
 import { moduleResolve } from 'import-meta-resolve';
 import { fileExists } from './fs.js';
 import { getPaths } from './paths.js';
-import { polka } from 'polka';
+import polka from 'polka';
 
 const paths = await getPaths();
 
@@ -82,23 +81,6 @@ async function startWatcher() {
 }
 startWatcher();
 
-function createSubscription(req, res) {
-    res.writeHead(200, {
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
-    });
-
-    res.write(':ok\n\n');
-    const onChange = () => res.write(`event: change\ndata: {}\n\n`);
-    events.addListener('change', onChange);
-
-    req.on('close', () => {
-        events.removeListener('change', onChange);
-        res.end();
-    });
-}
-
 function resolvePackage(specifier) {
     return moduleResolve(
         specifier, 
@@ -108,48 +90,53 @@ function resolvePackage(specifier) {
 }
 
 // Then start a proxy server on port 3000
-http.createServer(async (req, res) => {
-    if (req.url === '/events') {
-        return createSubscription(req, res);
+polka({
+    onNoMatch: async (req, res) => {
+        const fallbackPage = await tryGet404();
+        if (!fallbackPage) next();
+        res.writeHead(404, { 'Content-Type': 'text/html' });
+        res.end(injectRuntime(fallbackPage));
     }
+})
+    .use(async (req, res, next) => {
+        try {
+            const html = await tryRenderPage(req.url);
+            if (!html) return next();
+            res.writeHead(200, { 'Content-Type': 'text/html' })
+            res.end(html);
+        } catch (err) {
+            console.log('render err', err);
+            res.writeHead(500);
+            res.end(`Could not render page: ${err.stack}`);
+        }
+    })
+    .use(assets)
+    .get('/events', async (req, res) => {
+        res.writeHead(200, {
+            'Content-Type': 'text/event-stream',
+            'Cache-Control': 'no-cache',
+            'Connection': 'keep-alive'
+        });
 
-    if (req.url.startsWith('/__packages')) {
+        res.write(':ok\n\n');
+        const onChange = () => res.write(`event: change\ndata: {}\n\n`);
+        events.addListener('change', onChange);
+
+        req.on('close', () => {
+            events.removeListener('change', onChange);
+            res.end();
+        });
+    })
+    .get('/__packages/*', async (req, res) => {
         const libName = req.url.replace('/__packages/', '');
         const relPath = path.relative(paths.nodeModules, resolvePackage(libName));
         const targetUrl = `/node_modules/${relPath.split(path.delimiter).join('/')}`;
         res.writeHead(302, { "Location": targetUrl });
         res.end();
-        return;
-    }
-
-    if (req.url.startsWith('/node_modules/')) {
+    })
+    .get('/node_modules/*', async (req, res) => {
         const source = await readFile(path.join(paths.nodeModules + req.url.replace(/^\/node_modules/, '')));
         res.writeHead(200, { "content-type": 'text/javascript' });
         res.end(source);
-        return;
-    }
-
-    try {
-        const html = await tryRenderPage(req.url);
-        if (html) {
-            res.writeHead(200, { 'Content-Type': 'text/html' })
-            res.end(html);
-            return;
-        }
-    } catch (err) {
-        res.writeHead(500);
-        res.end(`Could not render page: ${err.stack}`);
-        return;
-    }
-
-    assets(req, res, async () => {
-        const fallbackPage = await tryGet404();
-        if (fallbackPage) {
-            res.writeHead(404, { 'Content-Type': 'text/html' });
-            res.end(injectRuntime(fallbackPage))
-            return
-        }
-        res.statusCode = 404;
-        res.end('Not found');
-    });
-}).listen(3000)
+    })
+    .listen(3000);
