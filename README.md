@@ -53,10 +53,10 @@ The package is organised as a monorepo for more precise dependency control.
     -[x] serve local static assets
     -[ ] live reload
         -[x] basic reload on static change
+        -[x] dev server restart
         -[ ] CSS HMR
         -[ ] Media HMR
         -[ ] JS HMR (?)
-        -[ ] dev server restart
     -[ ] npm packages
         -[ ] use JS from packages
             -[x] basic bare specifier support
