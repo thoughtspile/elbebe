@@ -1,0 +1,10 @@
+{
+    "files": [],
+    "references": [
+        { "path": "./packages/core" },
+        { "path": "./packages/dev" },
+        { "path": "./packages/build" },
+        { "path": "./packages/elbebe" },
+        { "path": "./packages/example" }
+    ]
+}

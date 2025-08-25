@@ -16,5 +16,8 @@
     "import-meta-resolve": "^4.1.0",
     "polka": "^0.5.2",
     "sirv": "^3.0.1"
+  },
+  "devDependencies": {
+    "@types/polka": "^0.5.7"
   }
 }

@@ -1,0 +1,9 @@
+{
+  "compilerOptions": {
+      "module": "esnext",
+      "moduleResolution": "bundler",
+      "allowUmdGlobalAccess": true
+  },
+  "extends": "../../tsconfig.base.json",
+  "include": ["./src/**/*.js"]
+}

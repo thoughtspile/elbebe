@@ -51,7 +51,7 @@ async function tryGet404() {
 
 async function generateNodeImportmap() {
     const imports = {};
-    const lockfile = JSON.parse(await readFile(paths.packageLock));
+    const lockfile = JSON.parse(String(await readFile(paths.packageLock)));
     for (const [path, pkg] of Object.entries(lockfile.packages)) {
         const name = path.split('node_modules/').at(-1);
         const { dev } = pkg;
@@ -85,14 +85,14 @@ startWatcher();
 function resolvePackage(specifier) {
     return moduleResolve(
         specifier, 
-        import.meta.url, 
+        new URL(import.meta.url), 
         new Set(['browser', 'import', 'development'])
     ).pathname;
 }
 
 // Then start a proxy server on port 3000
 polka({
-    onNoMatch: async (req, res) => {
+    onNoMatch: async (req, res, next) => {
         const fallbackPage = await tryGet404();
         if (!fallbackPage) next();
         res.writeHead(404, { 'Content-Type': 'text/html' });

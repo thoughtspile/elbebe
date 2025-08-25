@@ -7,6 +7,7 @@ import { h, render } from 'preact';
 const html = htm.bind(h);
 
 // Configuration
+/** @type [number, number] */
 const DEFAULT_VIEW = [59.9343, 30.3351];
 const DEFAULT_ZOOM = 12;
 const CLOSE_ZOOM = 16;
@@ -82,14 +83,18 @@ function renderLandmarks() {
     filteredLandmarks.forEach(landmark => {
         const marker = L.marker([landmark.lat, landmark.lng], { title: landmark.title });
 
-        marker.bindPopup(html`
-            <div class="custom-popup">
-                <h3>${landmark.title}</h3>
-                ${landmark.image ? html`<img src="${landmark.image}" class="popup-image" alt="${landmark.title}">` : ''}
-                <p>${landmark.description}</p>
-                <small>Coordinates: ${landmark.lat.toFixed(4)}, ${landmark.lng.toFixed(4)}</small>
-            </div>
-        `, { maxWidth: 300, className: 'custom-popup' });
+        marker.bindPopup(() => {
+            const container = document.createElement('div');
+            render(html`
+                <div class="custom-popup">
+                    <h3>${landmark.title}</h3>
+                    ${landmark.image ? html`<img src="${landmark.image}" class="popup-image" alt="${landmark.title}">` : ''}
+                    <p>${landmark.description}</p>
+                    <small>Coordinates: ${landmark.lat.toFixed(4)}, ${landmark.lng.toFixed(4)}</small>
+                </div>
+            `, container);
+            return container
+        }, { maxWidth: 300, className: 'custom-popup' });
 
         markers.addLayer(marker);
     });
@@ -117,7 +122,10 @@ function renderLandmarks() {
                             class="landmark-item"
                             onClick=${() => {
                                 map.setView([landmark.lat, landmark.lng], CLOSE_ZOOM);
-                                const marker = markers.getLayers().find(m => m.options.title === landmark.title);
+                                const marker = markers.getLayers().find(m => {
+                                    // @ts-expect-error
+                                    return m.options.title === landmark.title
+                                });
                                 if (marker) marker.openPopup();
                             }}
                         >

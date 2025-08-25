@@ -108,9 +108,9 @@ The package is organised as a monorepo for more precise dependency control.
     -[ ] preview mode
 - code quality
     -[ ] set up linters & formatters
-    -[ ] set up typescript
+    -[x] set up typescript
     -[ ] publint / arethetypeswrong
-    -[ ] CI / CD publish
+    -[x] CI / CD publish
 - CLI
     - add help / version
 

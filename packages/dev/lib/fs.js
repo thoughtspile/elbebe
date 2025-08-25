@@ -1,5 +1,5 @@
-import fs from 'node:fs/promises';
-import path from 'node:path';
+import * as fs from 'node:fs/promises';
+import * as path from 'node:path';
 
 export async function fileExists(path) {
     return fs.stat(path).then(s => s.isFile(), () => false);

@@ -3,12 +3,18 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "check:ts": "tsc -b --noEmit"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT",
   "description": "",
   "workspaces": [
     "./packages/*"
-  ]
+  ],
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "typescript": "^5.9.2"
+  }
 }
