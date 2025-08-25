@@ -11,6 +11,7 @@ import polka from 'polka';
 const paths = await getPaths();
 
 const assets = sirv(paths.srcDir, { dev: true });
+const nodeModuleAssets = sirv(paths.nodeModules, { dev: true });
 
 async function resolvePagePath(urlPath) {
     const fullHtmlUrl = urlPath.endsWith('.html') ? urlPath : path.join(urlPath, 'index.html');
@@ -111,6 +112,7 @@ polka({
         }
     })
     .use(assets)
+    .use('/node_modules', nodeModuleAssets)
     .get('/events', async (req, res) => {
         res.writeHead(200, {
             'Content-Type': 'text/event-stream',
@@ -128,15 +130,15 @@ polka({
         });
     })
     .get('/__packages/*', async (req, res) => {
-        const libName = req.url.replace('/__packages/', '');
-        const relPath = path.relative(paths.nodeModules, resolvePackage(libName));
-        const targetUrl = `/node_modules/${relPath.split(path.delimiter).join('/')}`;
-        res.writeHead(302, { "Location": targetUrl });
-        res.end();
-    })
-    .get('/node_modules/*', async (req, res) => {
-        const source = await readFile(path.join(paths.nodeModules + req.url.replace(/^\/node_modules/, '')));
-        res.writeHead(200, { "content-type": 'text/javascript' });
-        res.end(source);
+        try {
+            const libName = req.url.replace('/__packages/', '');
+            const relPath = path.relative(paths.nodeModules, resolvePackage(libName));
+            const targetUrl = `/node_modules/${relPath.split(path.delimiter).join('/')}`;
+            res.writeHead(302, { "Location": targetUrl });
+            res.end();
+        } catch {
+            res.writeHead(404);
+            res.end();
+        }
     })
     .listen(3000);

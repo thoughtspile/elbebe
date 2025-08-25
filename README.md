@@ -64,14 +64,12 @@ The package is organised as a monorepo for more precise dependency control.
             -[ ] transitive imports of conflicting versions
             -[x] internal package imports
             -[x] resolve package.json exports
-            -[ ] handle resolve / request errors
+            -[x] handle resolve / request errors
             -[ ] performance
                 -[ ] fully resolve importmap on startup vs runtime resolve via `/__packages`
                 -[ ] cache dependency package.json for lookups
                 -[ ] bypass `/__packages` for deep imports from packages without `exports`
-        -[ ] non-JS assets from npm packages
-            -[ ] CSS
-            -[ ] Ohter asset types
+        -[x] CSS from npm packages
         -[ ] Alternate node package managers support
             -[ ] yarn
             -[ ] pnpm
@@ -83,8 +81,7 @@ The package is organised as a monorepo for more precise dependency control.
         -[x] render HTML via JS
         -[x] re-render on JS change
         -[ ] mjs / ts / mts support
-        -[ ] display rendering errors
-        -[ ] warn on conflicting `x.html` / `x.html.js` files
+        -[x] display rendering errors
     -[ ] Generic server
         -[ ] https support
         -[ ] proxy routes
