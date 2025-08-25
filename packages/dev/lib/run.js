@@ -20,9 +20,12 @@ async function resolvePagePath(urlPath) {
     const hasHtml = await fileExists(htmlPath);
     if (hasHtml) return { type: 'html', path: htmlPath };
 
-    const generatorPath = `${htmlPath}.js`;
-    const hasGenerator = await fileExists(generatorPath);
-    if (hasGenerator) return { type: 'js', path: generatorPath }
+    const extensions = ['js', 'mjs', 'ts', 'mts'];
+    for (const ext of extensions) {
+        const generatorPath = `${htmlPath}.${ext}`;
+        const hasGenerator = await fileExists(generatorPath);
+        if (hasGenerator) return { type: 'js', path: generatorPath }
+    }
 
     return null;
 }
@@ -66,11 +69,17 @@ async function generateNodeImportmap() {
 const importmap = await generateNodeImportmap();
 
 const reloaderRuntime = await readFile(paths.livereloadRuntime);
-const importmapScript = `<script type="importmap">${JSON.stringify(importmap, null, 2)}</script>`;
-const reloader = `<script>${reloaderRuntime}</script>`;
+const scripts = `
+    <script type="importmap">${JSON.stringify(importmap, null, 2)}</script>
+    <script>${reloaderRuntime}</script>`;
 
+/**
+ * @param {string} html 
+ * @returns 
+ */
 function injectRuntime(html) {
-    return importmapScript + html + reloader;
+    const hasHead = html.includes('<head>');
+    return (hasHead ? html.replace('<head>', `<head>${scripts}`) : scripts + html);
 }
 
 const events = new EventEmitter();

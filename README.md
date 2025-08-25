@@ -65,22 +65,22 @@ The package is organised as a monorepo for more precise dependency control.
             -[x] internal package imports
             -[x] resolve package.json exports
             -[x] handle resolve / request errors
-            -[ ] performance
-                -[ ] fully resolve importmap on startup vs runtime resolve via `/__packages`
-                -[ ] cache dependency package.json for lookups
-                -[ ] bypass `/__packages` for deep imports from packages without `exports`
+        -[ ] optimize performance of JS imports
+            -[ ] fully resolve importmap on startup vs runtime resolve via `/__packages`
+            -[ ] cache dependency package.json for lookups
+            -[ ] bypass `/__packages` for deep imports from packages without `exports`
         -[x] CSS from npm packages
-        -[ ] Alternate node package managers support
+        -[ ] Support alternate package managers
             -[ ] yarn
             -[ ] pnpm
         -[ ] project structure
             -[x] package-lock in parent directory
             -[x] node_modules in parent directory
             -[ ] multiple node_modules
-    -[ ] prerender HTML
+    -[x] prerender HTML
         -[x] render HTML via JS
         -[x] re-render on JS change
-        -[ ] mjs / ts / mts support
+        -[x] mjs / ts / mts support
         -[x] display rendering errors
     -[ ] Generic server
         -[ ] https support
