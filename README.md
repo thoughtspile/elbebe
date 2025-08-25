@@ -50,67 +50,67 @@ The package is organised as a monorepo for more precise dependency control.
 ## Roadmap
 
 - dev
-    -[x] serve local static assets
-    -[ ] live reload
-        -[x] basic reload on static change
-        -[x] dev server restart
-        -[ ] CSS HMR
-        -[ ] Media HMR
-        -[ ] JS HMR (?)
-    -[ ] npm packages
-        -[ ] use JS from packages
-            -[x] basic bare specifier support
-            -[x] transitive imports
-            -[ ] transitive imports of conflicting versions
-            -[x] internal package imports
-            -[x] resolve package.json exports
-            -[x] handle resolve / request errors
-        -[ ] optimize performance of JS imports
-            -[ ] fully resolve importmap on startup vs runtime resolve via `/__packages`
-            -[ ] cache dependency package.json for lookups
-            -[ ] bypass `/__packages` for deep imports from packages without `exports`
-        -[x] CSS from npm packages
-        -[ ] Support alternate package managers
-            -[ ] yarn
-            -[ ] pnpm
-        -[ ] project structure
-            -[x] package-lock in parent directory
-            -[x] node_modules in parent directory
-            -[ ] multiple node_modules
-    -[x] prerender HTML
-        -[x] render HTML via JS
-        -[x] re-render on JS change
-        -[x] mjs / ts / mts support
-        -[x] display rendering errors
-    -[ ] Generic server
-        -[ ] https support
-        -[ ] proxy routes
-    -[ ] package.json `imports` resolution
-    -[ ] Alternate platform support
-        -[ ] deno
-        -[ ] bun
-        -[ ] linux
-        -[ ] windows
-    -[ ] restart on package.json changes
+    - [x] serve local static assets
+    - [ ] live reload
+        - [x] basic reload on static change
+        - [x] dev server restart
+        - [ ] CSS HMR
+        - [ ] Media HMR
+        - [ ] JS HMR (?)
+    - [ ] npm packages
+        - [ ] use JS from packages
+            - [x] basic bare specifier support
+            - [x] transitive imports
+            - [ ] transitive imports of conflicting versions
+            - [x] internal package imports
+            - [x] resolve package.json exports
+            - [x] handle resolve / request errors
+        - [ ] optimize performance of JS imports
+            - [ ] fully resolve importmap on startup vs runtime resolve via `/__packages`
+            - [ ] cache dependency package.json for lookups
+            - [ ] bypass `/__packages` for deep imports from packages without `exports`
+        - [x] CSS from npm packages
+        - [ ] Support alternate package managers
+            - [ ] yarn
+            - [ ] pnpm
+        - [ ] project structure
+            - [x] package-lock in parent directory
+            - [x] node_modules in parent directory
+            - [ ] multiple node_modules
+    - [x] prerender HTML
+        - [x] render HTML via JS
+        - [x] re-render on JS change
+        - [x] mjs / ts / mts support
+        - [x] display rendering errors
+    - [ ] Generic server
+        - [ ] https support
+        - [ ] proxy routes
+    - [ ] package.json `imports` resolution
+    - [ ] Alternate platform support
+        - [ ] deno
+        - [ ] bun
+        - [ ] linux
+        - [ ] windows
+    - [ ] restart on package.json changes
 - build
-    -[ ] prerender html
-    -[ ] add asset hashes
-        -[ ] rewrite HTML references
-        -[ ] flatten CSS imports
-        -[ ] generate JS importmap
-        -[ ] importing asset URLs from JS
-    -[ ] embed dependencies
-        -[ ] with package granularity
-        -[ ] with module granularity
-        -[ ] externalize to public CDNs
-    -[ ] support hosting assets on a separate domain
-    -[ ] support deploying to non-root route
-    -[ ] preview mode
+    - [ ] prerender html
+    - [ ] add asset hashes
+        - [ ] rewrite HTML references
+        - [ ] flatten CSS imports
+        - [ ] generate JS importmap
+        - [ ] importing asset URLs from JS
+    - [ ] embed dependencies
+        - [ ] with package granularity
+        - [ ] with module granularity
+        - [ ] externalize to public CDNs
+    - [ ] support hosting assets on a separate domain
+    - [ ] support deploying to non-root route
+    - [ ] preview mode
 - code quality
-    -[ ] set up linters & formatters
-    -[x] set up typescript
-    -[ ] publint / arethetypeswrong
-    -[x] CI / CD publish
+    - [ ] set up linters & formatters
+    - [x] set up typescript
+    - [ ] publint / arethetypeswrong
+    - [x] CI / CD publish
 - CLI
     - add help / version
 
